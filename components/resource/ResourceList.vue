@@ -123,7 +123,7 @@
                 let index = this.items.findIndex(item => item['@id'] === payload['@id']);
                 if (index !== -1) {
                     let oldItem = this.items[index];
-                    if (this.beforeUpdate !== null) {
+                    if (typeof this.beforeCreate === "function") {
                         if (!this.beforeUpdate(payload, oldItem)) {
                             return;
                         }
@@ -136,7 +136,7 @@
                 }
             },
             append(payload) {
-                if (this.beforeCreate !== null) {
+                if (typeof this.beforeCreate === "function") {
                     if (!this.beforeCreate(payload)) {
                         return;
                     }
