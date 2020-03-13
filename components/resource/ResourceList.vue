@@ -1,0 +1,228 @@
+<template>
+    <b-card :header="resource" :no-body="items !== null" class="resource-list">
+        <loading v-if="items === null"></loading>
+        <b-list-group flush v-else-if="items.length > 0">
+            <b-list-group-item :key="item.id" v-for="item in items">
+                <div class="item">
+                    <slot :item="item" name="item">
+                        <b-link :to="uri+'/'+item.id+'/view'" class="display" v-if="canView">{{item[displayProperty]}}
+                        </b-link>
+                        <div class="display" v-else>{{item[displayProperty]}}</div>
+                    </slot>
+                    <div class="action" v-if="canUpdate">
+                        <b-button :to="uri+'/'+item.id+'/update'" variant="link">
+                            <font-awesome-icon :icon="['far', 'pencil-alt']"/>
+                        </b-button>
+                    </div>
+                    <div class="action" v-if="canDelete">
+                        <b-button variant="link">
+                            <font-awesome-icon :icon="['far', 'trash-alt']"/>
+                        </b-button>
+                    </div>
+                </div>
+            </b-list-group-item>
+        </b-list-group>
+        <div class="text-center py-4" v-else>No items found</div>
+        <b-card-footer v-if="canCreate">
+            <b-button :to="uri + '/create'" size="lg" type="button" variant="primary">Create</b-button>
+        </b-card-footer>
+    </b-card>
+</template>
+
+<script>
+    import Loading from "./../ui/Loading";
+    import api from "./../../lib/api-platform";
+
+    export default {
+        name: "ResourceList",
+        components: {Loading},
+        props: {
+            resource: {
+                type: String,
+                required: true,
+            },
+            uri: {
+                type: String,
+                required: true,
+            },
+            displayProperty: {
+                type: String,
+                required: true,
+            },
+            itemActions: {
+                type: Array,
+                default: () => [],
+            },
+            listActions: {
+                type: Array,
+                default: () => [],
+            },
+            mercure: {
+                type: String,
+            },
+            mercureCreate: {
+                type: String
+            },
+            mercureUpdate: {
+                type: String
+            },
+            mercureDelete: {
+                type: String
+            },
+            beforeCreate: {
+            },
+            beforeUpdate: {
+
+            }
+        },
+        data() {
+            return {
+                items: null,
+                mercureHub: null,
+                mercureEventSource: null,
+            }
+        },
+        created() {
+            api.authenticated().get(this.uri).then(response => {
+                this.items = response.data['hydra:member'];
+                if (this.mercureEnabled) {
+                    this.mercureHub = new URL(response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/)[1]);
+                    let topic = process.env.VUE_APP_API_URL + this.uri + '/{id}';
+                    this.mercureHub.searchParams.append('topic', topic);
+                    this.mercureEventSource = new EventSource(this.mercureHub, { withCredentials: true });
+                    this.mercureEventSource.onmessage = this.handleMercureEvent;
+                }
+            }).catch(() => {
+                this.items = [];
+            });
+        },
+        destroyed() {
+            this.items = null;
+            if (this.mercureEventSource !== null) {
+                this.mercureEventSource.close();
+                this.mercureEventSource = null;
+            }
+            this.mercureHub = null;
+        },
+        computed: {
+            canUpdate() {
+                return this.itemActions && this.itemActions.indexOf('update') !== -1;
+            },
+            canView() {
+                return this.itemActions && this.itemActions.indexOf('view') !== -1;
+            },
+            canDelete() {
+                return this.itemActions && this.itemActions.indexOf('delete') !== -1;
+            },
+            canCreate() {
+                return this.listActions && this.listActions.indexOf('create') !== -1;
+            },
+        },
+        methods: {
+            replace(payload) {
+                let index = this.items.findIndex(item => item['@id'] === payload['@id']);
+                if (index !== -1) {
+                    let oldItem = this.items[index];
+                    if (this.beforeUpdate !== null) {
+                        if (!this.beforeUpdate(payload, oldItem)) {
+                            return;
+                        }
+                    }
+                    this.items.splice(index, 1, payload);
+                    this.$emit('update', payload, oldItem);
+                }
+                else {
+                    console.log('Could not find: ' + payload['@id']);
+                }
+            },
+            append(payload) {
+                if (this.beforeCreate !== null) {
+                    if (!this.beforeCreate(payload)) {
+                        return;
+                    }
+                }
+                this.items.push(payload);
+                this.$emit('create', payload);
+
+            },
+            delete(payload) {
+                this.items = this.items.filter(item => {
+                    return item['@id'] !== payload['@id'];
+                });
+                this.$emit('delete', payload);
+            },
+            refresh() {
+                api.authenticated().get(this.uri).then(response => {
+                    this.items = response.data['hydra:member'];
+                    this.$emit('refresh', response);
+                });
+            },
+            handleMercureEvent(event) {
+                let payload = JSON.parse(event.data);
+                let method = this.getMercureChangeMethod(payload);
+
+                if (this.getMercureHandlerMethod(method) === 'refresh') {
+                    this.refresh()
+                } else if (this.getMercureHandlerMethod(method) === 'modify') {
+                    switch (method) {
+                        case 'create':
+                            this.append(payload);
+                            break;
+                        case 'update':
+                            this.replace(payload);
+                            break;
+                        case 'delete':
+                            this.delete(payload);
+                            break;
+                        default:
+                            console.log('Unknown method "' + method + '" for modify on "' + payload['@id'] + '"');
+                    }
+                }
+            },
+            mercureEnabled() {
+                if (this.mercure) {
+                    return true;
+                }
+                if (
+                    (this.mercureCreate && this.mercureCreate !== 'ignore')
+                    ||
+                    (this.mercureUpdate && this.mercureUpdate !== 'ignore')
+                    ||
+                    (this.mercureDelete && this.mercureDelete !== 'ignore')
+                ) {
+                    return true;
+                }
+                return false;
+            },
+            getMercureChangeMethod(eventData) {
+                if (Object.keys(eventData).length === 1) {
+                    return 'delete';
+                }
+                let index = -1;
+                if (this.items !== null) {
+                    index = this.items.findIndex(item => {
+                        return item['@id'] === eventData['@id']
+                    });
+                }
+                if (index !== -1) {
+                    return 'update';
+                }
+                return 'create';
+            },
+            getMercureHandlerMethod(method) {
+                switch (method) {
+                    case 'create':
+                        return this.mercureCreate ? this.mercureCreate : this.mercure;
+                    case 'update':
+                        return this.mercureUpdate ? this.mercureUpdate : this.mercure;
+                    case 'delete':
+                        return this.mercureDelete ? this.mercureDelete : this.mercure;
+                }
+            }
+        },
+    }
+</script>
+
+<style scoped>
+
+</style>
