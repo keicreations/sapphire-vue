@@ -32,6 +32,7 @@
 <script>
     import Loading from "./../ui/Loading";
     import api from "./../../lib/api-platform";
+    import {EventSourcePolyfill} from 'event-source-polyfill';
 
     export default {
         name: "ResourceList",
@@ -89,7 +90,11 @@
                     this.mercureHub = new URL(response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/)[1]);
                     let topic = process.env.VUE_APP_API_URL + this.uri + '/{id}';
                     this.mercureHub.searchParams.append('topic', topic);
-                    this.mercureEventSource = new EventSource(this.mercureHub, { withCredentials: true });
+                    this.mercureEventSource = new EventSourcePolyfill(this.mercureHub, {
+                        headers: {
+                            Authorization: 'Bearer ' + this.$store.state.user.mercureToken
+                        }
+                    });
                     this.mercureEventSource.onmessage = this.handleMercureEvent;
                 }
             }).catch(() => {
