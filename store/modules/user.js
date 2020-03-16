@@ -3,7 +3,9 @@ import api from './../../lib/api-platform';
 
 const state = {
     token: null,
+    tokenKey: 'token',
     refreshToken: null,
+    refreshTokenKey: 'refreshToken',
     expiresAt: null,
     userId: null,
     user: null,
@@ -15,9 +17,9 @@ const mutations = {
     },
     setToken(state, token) {
         if (token === null) {
-            localStorage.removeItem('token');
+            localStorage.removeItem(this.tokenKey);
         } else {
-            localStorage.setItem('token', token);
+            localStorage.setItem(this.tokenKey, token);
         }
         state.token = token;
 
@@ -36,16 +38,17 @@ const mutations = {
     },
     setRefreshToken(state, refreshToken) {
         if (refreshToken === null) {
-            localStorage.removeItem('refreshToken');
+            localStorage.removeItem(this.refreshTokenKey);
         } else {
-            localStorage.setItem('refreshToken', refreshToken);
+            localStorage.setItem(this.refreshTokenKey, refreshToken);
         }
         state.refreshToken = refreshToken;
 
     },
+
     setUserId(state, userId) {
         state.userId = userId;
-    }
+    },
 };
 
 const getters = {};
@@ -65,14 +68,13 @@ const actions = {
                 reject(error);
             });
         });
-
     },
     loadToken(context) {
-        context.commit('setToken', localStorage.getItem('token'));
+        context.commit('setToken', localStorage.getItem(this.tokenKey));
     },
     loadRefreshToken(context) {
-        context.commit('setRefreshToken', localStorage.getItem('refreshToken'));
-    }
+        context.commit('setRefreshToken', localStorage.getItem(this.refreshTokenKey));
+    },
 };
 
 export default {
@@ -80,5 +82,5 @@ export default {
     state,
     getters,
     actions,
-    mutations
+    mutations,
 }
