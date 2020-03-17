@@ -6,8 +6,6 @@ const state = {
     tokenKey: 'token',
     refreshToken: null,
     refreshTokenKey: 'refreshToken',
-    expiresAt: null,
-    userId: null,
     user: null,
 };
 
@@ -16,36 +14,11 @@ const mutations = {
         state.user = user;
     },
     setToken(state, token) {
-        if (token === null) {
-            localStorage.removeItem(this.tokenKey);
-        } else {
-            localStorage.setItem(this.tokenKey, token);
-        }
         state.token = token;
-
-        if (typeof token !== 'undefined' && token !== null) {
-            let payload = jwt_decode(token);
-            state.userId = payload.user_id;
-            state.expiresAt = payload.exp;
-            api.authenticated().get('/api/users/' + state.userId).then(response => {
-                state.user = response.data;
-            });
-        } else {
-            state.user = null;
-            state.userId = null;
-            state.expiresAt = null;
-        }
     },
     setRefreshToken(state, refreshToken) {
-        if (refreshToken === null) {
-            localStorage.removeItem(this.refreshTokenKey);
-        } else {
-            localStorage.setItem(this.refreshTokenKey, refreshToken);
-        }
         state.refreshToken = refreshToken;
-
     },
-
     setUserId(state, userId) {
         state.userId = userId;
     },
@@ -62,19 +35,58 @@ const actions = {
             api.anonymous().post('/token/refresh', {
                 'refresh_token': context.state.refreshToken
             }).then(response => {
-                context.commit('setToken', response.data.token);
+                context.dispatch('setToken', response.data.token);
                 resolve(response.data.token);
             }).catch(error => {
+                context.dispatch('setRefreshToken', null);
                 reject(error);
             });
         });
     },
+    storeToken(context, token) {
+        if (token === null) {
+            localStorage.removeItem(context.state.tokenKey);
+        } else {
+            localStorage.setItem(context.state.tokenKey, token);
+        }
+        context.commit('setToken', token);
+    },
     loadToken(context) {
-        context.commit('setToken', localStorage.getItem(this.tokenKey));
+        context.dispatch('setToken', localStorage.getItem(context.state.tokenKey));
+    },
+    setRefreshToken(context, refreshToken) {
+        if (refreshToken === null) {
+            localStorage.removeItem(context.state.refreshTokenKey);
+        } else {
+            localStorage.setItem(context.state.refreshTokenKey, refreshToken);
+        }
+        context.commit('setRefreshToken', refreshToken);
     },
     loadRefreshToken(context) {
-        context.commit('setRefreshToken', localStorage.getItem(this.refreshTokenKey));
+        context.dispatch('setRefreshToken', localStorage.getItem(this.refreshTokenKey));
     },
+    setToken(context, token) {
+        context.dispatch('storeToken', token);
+
+        if (typeof token !== 'undefined' && token !== null) {
+            let payload = jwt_decode(token);
+            context.dispatch('setUser', payload.user_id);
+        } else {
+            context.dispatch('setUser', null);
+        }
+    },
+    setUser(context, userId) {
+        if (userId === null || typeof userId === 'undefined') {
+            context.commit('setUser', null);
+        }
+        else {
+            api.authenticated().get('/api/users/' + userId).then(response => {
+                context.commit('setUser', response.data);
+            }).catch(() => {
+                context.commit('setUser', null);
+            });
+        }
+    }
 };
 
 export default {

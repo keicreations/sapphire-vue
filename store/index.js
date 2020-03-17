@@ -12,25 +12,25 @@ export default new Vuex.Store({
         mercure,
     },
     actions: {
-        login(context, username, password) {
+        login(context, payload) {
             return new Promise(function (resolve, reject) {
                 api.anonymous().post('/authentication_token', {
-                    email: username,
-                    password: password
+                    email: payload.username,
+                    password: payload.password,
                 }).then(response => {
-                    context.commit('user/setToken', response.data.token);
-                    context.commit('user/setRefreshToken', response.data.refresh_token);
-                    context.commit('mercure/setToken', response.data.mercure_token);
+                    context.dispatch('user/setToken', response.data.token);
+                    context.dispatch('user/setRefreshToken', response.data.refresh_token);
+                    context.dispatch('mercure/setToken', response.data.mercure_token);
 
                     resolve();
                 }).catch(reason => {
-                    context.commit('user/setToken', null);
-                    context.commit('user/setRefreshToken', null);
-                    context.commit('mercure/setToken', null);
+                    context.dispatch('user/setToken', null);
+                    context.dispatch('user/setRefreshToken', null);
+                    context.dispatch('mercure/setToken', null);
 
                     reject(reason.response);
                 });
             });
-        }
+        },
     }
 });

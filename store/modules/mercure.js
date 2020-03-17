@@ -5,19 +5,22 @@ const state = {
 const getters = {};
 const actions = {
     loadToken(context) {
-        context.commit('setToken', localStorage.getItem(this.tokenKey));
+        context.commit('setToken', localStorage.getItem(context.state.tokenKey));
     },
     clear(context) {
         context.commit('setToken', null);
     },
+    setToken(context, token) {
+        if (token === null) {
+            localStorage.removeItem(context.state.tokenKey);
+        } else {
+            localStorage.setItem(context.state.tokenKey, token);
+        }
+        context.commit('setToken', token);
+    }
 };
 const mutations = {
     setToken(state, token) {
-        if (token === null) {
-            localStorage.removeItem(this.tokenKey);
-        } else {
-            localStorage.setItem(this.tokenKey, token);
-        }
         state.token = token;
     },
 };

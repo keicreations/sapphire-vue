@@ -92,7 +92,7 @@
                     this.mercureHub.searchParams.append('topic', topic);
                     this.mercureEventSource = new EventSourcePolyfill(this.mercureHub, {
                         headers: {
-                            Authorization: 'Bearer ' + this.$store.state.user.mercureToken
+                            Authorization: 'Bearer ' + this.$store.state.mercure.token
                         }
                     });
                     this.mercureEventSource.onmessage = this.handleMercureEvent;
