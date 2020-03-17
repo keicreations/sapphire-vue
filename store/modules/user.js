@@ -27,8 +27,8 @@ const mutations = {
 const getters = {};
 const actions = {
     clear(context) {
-        context.commit('setRefreshToken', null);
-        context.commit('setToken', null);
+        context.dispatch('setRefreshToken', null);
+        context.dispatch('setToken', null);
     },
     useRefreshToken(context) {
         return new Promise((resolve, reject) => {
@@ -38,7 +38,7 @@ const actions = {
                 context.dispatch('setToken', response.data.token);
                 resolve(response.data.token);
             }).catch(error => {
-                context.dispatch('setRefreshToken', null);
+                context.dispatch('clear');
                 reject(error);
             });
         });
@@ -63,7 +63,7 @@ const actions = {
         context.commit('setRefreshToken', refreshToken);
     },
     loadRefreshToken(context) {
-        context.dispatch('setRefreshToken', localStorage.getItem(this.refreshTokenKey));
+        context.commit('setRefreshToken', localStorage.getItem(context.state.refreshTokenKey));
     },
     setToken(context, token) {
         context.dispatch('storeToken', token);

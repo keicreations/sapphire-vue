@@ -5,12 +5,12 @@
             <b-list-group-item :key="item.id" v-for="item in items">
                 <div class="item">
                     <slot :item="item" name="item">
-                        <b-link :to="uri+'/'+item.id+'/view'" class="display" v-if="canView">{{item[displayProperty]}}
+                        <b-link :to="contextRoute+'/'+item.id+'/view'" class="display" v-if="canView">{{item[displayProperty]}}
                         </b-link>
                         <div class="display" v-else>{{item[displayProperty]}}</div>
                     </slot>
                     <div class="action" v-if="canUpdate">
-                        <b-button :to="uri+'/'+item.id+'/update'" variant="link">
+                        <b-button :to="contextRoute+'/'+item.id+'/update'" variant="link">
                             <font-awesome-icon :icon="['far', 'pencil-alt']"/>
                         </b-button>
                     </div>
@@ -23,8 +23,8 @@
             </b-list-group-item>
         </b-list-group>
         <div class="text-center py-4" v-else>No items found</div>
-        <b-card-footer v-if="canCreate">
-            <b-button :to="uri + '/create'" size="lg" type="button" variant="primary">Create</b-button>
+        <b-card-footer v-if="canCreate && items !== null">
+            <b-button :to="contextRoute + '/create'" size="lg" type="button" variant="primary">Create</b-button>
         </b-card-footer>
     </b-card>
 </template>
@@ -79,6 +79,7 @@
         data() {
             return {
                 items: null,
+                context: null,
                 mercureHub: null,
                 mercureEventSource: null,
             }
@@ -86,6 +87,7 @@
         created() {
             api.authenticated().get(this.uri).then(response => {
                 this.items = response.data['hydra:member'];
+                this.context = response.data['@context'];
                 if (this.mercureEnabled) {
                     this.mercureHub = new URL(response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/)[1]);
                     let topic = process.env.VUE_APP_API_URL + this.uri + '/{id}';
@@ -122,6 +124,9 @@
             canCreate() {
                 return this.listActions && this.listActions.indexOf('create') !== -1;
             },
+            contextRoute() {
+                return this.context ? this.context.replace('/api/contexts', '').toLowerCase().replace(' ', '') : null;
+            }
         },
         methods: {
             replace(payload) {
