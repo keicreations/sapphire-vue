@@ -1,5 +1,9 @@
 <template>
-    <b-card :header="resource" :no-body="items !== null" class="resource-list">
+    <b-card :no-body="items !== null" class="resource-list">
+        <b-card-header class="d-flex">
+            <div class="flex-grow-1">{{ resource }}</div>
+            <b-badge class="ml-3">{{ itemCount }}</b-badge>
+        </b-card-header>
         <loading v-if="items === null"></loading>
         <b-list-group flush v-else-if="items.length > 0">
             <b-list-group-item :to="canView ? contextRoute+'/'+item.id+'/view' : null" :key="item.id" v-for="item in items">
@@ -76,18 +80,17 @@
         },
         data() {
             return {
-                items: null,
-                context: null,
+                page: null,
                 mercureHub: null,
                 mercureEventSource: null,
             }
         },
         created() {
             api.authenticated().get(this.uri).then(response => {
-                this.items = response.data['hydra:member'];
-                this.context = response.data['@context'];
-                if (this.mercureEnabled) {
-                    this.mercureHub = new URL(response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/)[1]);
+                this.page = response.data;
+                let mercureTopic = response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/);
+                if (this.mercureEnabled && mercureTopic) {
+                    this.mercureHub = new URL(mercureTopic[1]);
                     let topic = process.env.VUE_APP_API_URL + this.uri + '/{id}';
                     this.mercureHub.searchParams.append('topic', topic);
                     this.mercureEventSource = new EventSourcePolyfill(this.mercureHub, {
@@ -97,12 +100,12 @@
                     });
                     this.mercureEventSource.onmessage = this.handleMercureEvent;
                 }
-            }).catch(() => {
-                this.items = [];
+            }).catch(error => {
+                this.page = null;
             });
         },
         destroyed() {
-            this.items = null;
+            this.page = null;
             if (this.mercureEventSource !== null) {
                 this.mercureEventSource.close();
                 this.mercureEventSource = null;
@@ -110,6 +113,15 @@
             this.mercureHub = null;
         },
         computed: {
+            items() {
+                return this.page ? this.page['hydra:member'] : null;
+            },
+            itemCount() {
+                return this.page ? this.page['hydra:totalItems'] : null;
+            },
+            context() {
+                return this.page ? this.page['@context'] : null;
+            },
             canUpdate() {
                 return this.itemActions && this.itemActions.indexOf('update') !== -1;
             },
@@ -124,7 +136,7 @@
             },
             contextRoute() {
                 return this.context ? this.context.replace('/api/contexts', '').toLowerCase().replace(' ', '') : null;
-            }
+            },
         },
         methods: {
             replace(payload) {
