@@ -90,7 +90,7 @@
                 this.page = response.data;
                 let mercureTopic = response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/);
                 if (this.mercureEnabled && mercureTopic) {
-                    this.mercureHub = new URL(mercureTopic[1]);
+                    this.mercureHub = new URL(mercureTopic[1].split('?')[0]);
                     let topic = process.env.VUE_APP_API_URL + this.uri + '/{id}';
                     this.mercureHub.searchParams.append('topic', topic);
                     this.mercureEventSource = new EventSourcePolyfill(this.mercureHub, {
