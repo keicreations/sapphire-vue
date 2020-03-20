@@ -2,12 +2,10 @@
     <b-card :header="resource" :no-body="items !== null" class="resource-list">
         <loading v-if="items === null"></loading>
         <b-list-group flush v-else-if="items.length > 0">
-            <b-list-group-item :key="item.id" v-for="item in items">
+            <b-list-group-item :to="canView ? contextRoute+'/'+item.id+'/view' : null" :key="item.id" v-for="item in items">
                 <div class="item">
                     <slot :item="item" name="item">
-                        <b-link :to="contextRoute+'/'+item.id+'/view'" class="display" v-if="canView">{{item[displayProperty]}}
-                        </b-link>
-                        <div class="display" v-else>{{item[displayProperty]}}</div>
+                        <div class="display">{{item[displayProperty]}}</div>
                     </slot>
                     <div class="action" v-if="canUpdate">
                         <b-button :to="contextRoute+'/'+item.id+'/update'" variant="link">
