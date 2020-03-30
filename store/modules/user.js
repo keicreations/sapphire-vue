@@ -54,6 +54,9 @@ const actions = {
     loadToken(context) {
         context.dispatch('setToken', localStorage.getItem(context.state.tokenKey));
     },
+    readToken(context) {
+        context.commit('setToken', localStorage.getItem(context.state.tokenKey));
+    },
     setRefreshToken(context, refreshToken) {
         if (refreshToken === null) {
             localStorage.removeItem(context.state.refreshTokenKey);
