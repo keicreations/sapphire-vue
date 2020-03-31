@@ -13,20 +13,21 @@ export default new Vuex.Store({
     },
     actions: {
         login(context, payload) {
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
                 api.anonymous().post('/authentication_token', {
                     email: payload.username,
                     password: payload.password,
                 }).then(response => {
                     context.dispatch('user/setToken', response.data.token);
                     context.dispatch('user/setRefreshToken', response.data.refresh_token);
-                    context.dispatch('mercure/setToken', response.data.mercure_token);
-
+                    context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
+                    context.dispatch('mercure/useRefreshToken');
                     resolve();
                 }).catch(reason => {
                     context.dispatch('user/setToken', null);
                     context.dispatch('user/setRefreshToken', null);
                     context.dispatch('mercure/setToken', null);
+                    context.dispatch('mercure/setRefreshToken', null);
 
                     reject(reason.response);
                 });
