@@ -120,6 +120,7 @@
         created() {
             api.authenticated().get(this.currentUri).then(response => {
                 this.page = response.data;
+                this.$emit('refresh', response.data);
                 let mercureHub = response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/);
                 if (this.mercureEnabled && Array.isArray(mercureHub) && mercureHub.length > 1) {
                     let topic = process.env.VUE_APP_API_URL + this.page['@id'] + '/{id}';
@@ -248,7 +249,7 @@
             refresh() {
                 api.authenticated().get(this.currentUri).then(response => {
                     this.page = response.data;
-                    this.$emit('refresh', response);
+                    this.$emit('refresh', response.data);
                 });
             },
             handleMercureEvent(event) {
