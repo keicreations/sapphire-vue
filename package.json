@@ -1,6 +1,6 @@
 {
     "name": "@keicreations/sapphire-vue",
-    "version": "0.0.35",
+    "version": "0.0.36",
     "description": "Vue components to communicate with API platform and Mercure.",
     "repository": {
         "type": "git",
