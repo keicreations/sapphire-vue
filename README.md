@@ -36,7 +36,7 @@ Sapphire Vue is a [Vue.js][vue-js] library to handle [Api Platform][api-platform
 
 [mercure]: https://mercure.rocks/docs/getting-started
 [api-platform]: https://api-platform.com/docs/core/getting-started/
-[vue.js]: https://vuejs.org/v2/guide/
+[vue-js]: https://vuejs.org/v2/guide/
 [vue-slot]: https://vuejs.org/v2/guide/components-slots.html
 [axios]: https://github.com/axios/axios
 [hydra-collection]: https://www.hydra-cg.com/spec/latest/core/#collections
