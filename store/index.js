@@ -21,6 +21,7 @@ export default new Vuex.Store({
                     context.dispatch('user/setToken', response.data.token);
                     context.dispatch('user/setRefreshToken', response.data.refresh_token);
                     context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
+                    context.dispatch('mercure/useRefreshToken');
                     resolve();
                 }).catch(reason => {
                     context.dispatch('user/setToken', null);
@@ -32,20 +33,5 @@ export default new Vuex.Store({
                 });
             });
         },
-        loginMercure(context, payload) {
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('[Mercure] Getting a token using user refresh_token.');
-            }
-            return new Promise((resolve, reject) => {
-                api.anonymous().post('/mercure/token', {
-                    refresh_token: payload
-                }).then(response => {
-                    context.dispatch('mercure/setToken', response.data.mercure_token)
-                    resolve();
-                }).catch(reason => {
-                    reject(reason.response);
-                });
-            })
-        }
     }
 });

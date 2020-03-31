@@ -1,6 +1,7 @@
 import {EventSourcePolyfill} from "event-source-polyfill";
 import jwt_decode from 'jwt-decode';
 import moment from 'moment';
+import api from './../../lib/api-platform';
 
 
 const state = {
@@ -55,6 +56,19 @@ const actions = {
     getId(context) {
         context.commit('increment');
     },
+    useRefreshToken(context) {
+        return new Promise((resolve, reject) => {
+            api.anonymous().post('/mercure/token', {
+                'refresh_token': context.state.refreshToken
+            }).then(response => {
+                context.dispatch('setToken', response.data.mercure_token);
+                resolve(response.data.token);
+            }).catch(error => {
+                context.dispatch('clear');
+                reject(error);
+            });
+        });
+    },
     loadToken(context) {
         context.commit('setToken', localStorage.getItem(context.state.tokenKey));
     },
@@ -104,6 +118,15 @@ const actions = {
             context.dispatch('connect');
         }
     },
+    registerEventSource(context) {
+        context.state.eventSource = new EventSourcePolyfill(context.getters.calculatedMercureUri, {
+            headers: {
+                Authorization: 'Bearer ' + context.state.token
+            }
+        });
+        context.state.eventSource.onmessage = context.getters.handler;
+        console.log('[Mercure] Connected.')
+    },
     connect(context, payload) {
         if (context.getters.calculatedMercureUri !== null && (context.state.currentMercureUri === null || context.getters.calculatedMercureUri.toString() !== context.state.currentMercureUri.toString())) {
             if (process.env.NODE_ENV !== 'production') {
@@ -116,26 +139,16 @@ const actions = {
             let expirationTimestamp = jwt_decode(context.state.token).exp;
             if (moment.unix(expirationTimestamp).isBefore(moment())) {
                 if (process.env.NODE_ENV !== 'production') {
-                    console.log('[Mercure] Token seems to be expired. Refreshing.');
+                    console.log('[Mercure] Token expired! Refreshing.');
                 }
-                context.dispatch('loginMercure', context.state.refreshToken, {
-                    root: true,
-                }).then(() => {
+                context.dispatch('useRefreshToken', context.state.refreshToken).then(() => {
                     console.log('[Mercure] Refresh successful. Reconnecting.');
-                    context.state.eventSource = new EventSourcePolyfill(context.getters.calculatedMercureUri, {
-                        headers: {
-                            Authorization: 'Bearer ' + context.state.token
-                        }
-                    });
-                    context.state.eventSource.onmessage = context.getters.handler;
+                    context.dispatch('registerEventSource');
+                }).catch((error) => {
+                    console.error('[Mercure] Token could not be renewed. Error: ' + error.data);
                 });
             } else {
-                context.state.eventSource = new EventSourcePolyfill(context.getters.calculatedMercureUri, {
-                    headers: {
-                        Authorization: 'Bearer ' + context.state.token
-                    }
-                });
-                context.state.eventSource.onmessage = context.getters.handler;
+               context.dispatch('registerEventSource');
             }
         }
     },
