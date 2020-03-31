@@ -5,7 +5,7 @@ Sapphire Vue is a [Vue.js][vue-js] library to handle [Api Platform][api-platform
 ## Features
 
 ### Axios API wrapper for JWT authentication 
-- Uses [Axois][axios] promises
+- Uses [Axios][axios] promises
 - Anonymous and Authenticated calls
 - Interceptor for automatically refreshing expired tokens
 
