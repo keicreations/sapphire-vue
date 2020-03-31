@@ -143,13 +143,13 @@ const actions = {
                 if (process.env.NODE_ENV !== 'production') {
                     console.log('[Mercure] Token expired! Refreshing.');
                 }
-                context.dispatch('useRefreshToken', context.state.refreshToken).then(() => {
+                context.dispatch('useRefreshToken').then(() => {
                     if (process.env.NODE_ENV !== 'production') {
                         console.log('[Mercure] Refresh successful. Reconnecting.');
                     }
                     context.dispatch('registerEventSource');
-                }).catch((error) => {
-                    console.error('[Mercure] Token could not be renewed. Error: ' + error.data);
+                }).catch(error => {
+                    console.error('[Mercure] Token could not be renewed. Error: ' + error);
                 });
             } else {
                context.dispatch('registerEventSource');
