@@ -15,7 +15,7 @@ Sapphire Vue is a [Vue.js][vue-js] library to handle [Api Platform][api-platform
 - Mercure handler registration
   - Uses a single Mercure connection 
   - Automatic connecting and reconnecting depending on the watched topics
-- Fetches user data from the JWT token
+- Fetches user data from the [JWT token][jwt]
 
 ### Vue ResourceList component 
 - Holds a [Hydra:collection][hydra-collection]
@@ -40,3 +40,4 @@ Sapphire Vue is a [Vue.js][vue-js] library to handle [Api Platform][api-platform
 [vue-slot]: https://vuejs.org/v2/guide/components-slots.html
 [axios]: https://github.com/axios/axios
 [hydra-collection]: https://www.hydra-cg.com/spec/latest/core/#collections
+[jwt]: https://jwt.io/
