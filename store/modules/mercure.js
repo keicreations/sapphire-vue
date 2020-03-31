@@ -166,6 +166,7 @@ const actions = {
         if (context.state.eventSource !== null) {
             context.state.eventSource.close();
             context.state.eventSource = null;
+            context.commit('setCurrentMercureUrl', null);
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[Mercure] Disconnected');
             }
