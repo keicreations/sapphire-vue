@@ -125,7 +125,9 @@ const actions = {
             }
         });
         context.state.eventSource.onmessage = context.getters.handler;
-        console.log('[Mercure] Connected.')
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[Mercure] Connected.')
+        }
     },
     connect(context, payload) {
         if (context.getters.calculatedMercureUri !== null && (context.state.currentMercureUri === null || context.getters.calculatedMercureUri.toString() !== context.state.currentMercureUri.toString())) {
@@ -142,7 +144,9 @@ const actions = {
                     console.log('[Mercure] Token expired! Refreshing.');
                 }
                 context.dispatch('useRefreshToken', context.state.refreshToken).then(() => {
-                    console.log('[Mercure] Refresh successful. Reconnecting.');
+                    if (process.env.NODE_ENV !== 'production') {
+                        console.log('[Mercure] Refresh successful. Reconnecting.');
+                    }
                     context.dispatch('registerEventSource');
                 }).catch((error) => {
                     console.error('[Mercure] Token could not be renewed. Error: ' + error.data);
