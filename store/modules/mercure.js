@@ -59,7 +59,7 @@ const actions = {
     useRefreshToken(context) {
         return new Promise((resolve, reject) => {
             api.anonymous().post('/mercure/token', {
-                'refresh_token': context.state.refreshToken
+                refresh_token: context.state.refreshToken
             }).then(response => {
                 context.dispatch('setToken', response.data.mercure_token);
                 resolve(response.data.token);
@@ -68,6 +68,9 @@ const actions = {
                 reject(error);
             });
         });
+    },
+    loadRefreshToken(context) {
+        context.commit('setRefreshToken', localStorage.getItem(context.state.refreshTokenKey));
     },
     loadToken(context) {
         context.commit('setToken', localStorage.getItem(context.state.tokenKey));
@@ -130,6 +133,9 @@ const actions = {
         }
     },
     connect(context, payload) {
+        if (!context.state.refreshToken) {
+            context.dispatch('loadRefreshToken');
+        }
         if (context.getters.calculatedMercureUri !== null && (context.state.currentMercureUri === null || context.getters.calculatedMercureUri.toString() !== context.state.currentMercureUri.toString())) {
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[Mercure] Connecting to "' + context.getters.calculatedMercureUri.toString() + '"');
@@ -143,13 +149,13 @@ const actions = {
                 if (process.env.NODE_ENV !== 'production') {
                     console.log('[Mercure] Token expired! Refreshing.');
                 }
-                context.dispatch('useRefreshToken', context.state.refreshToken).then(() => {
+                context.dispatch('useRefreshToken').then(() => {
                     if (process.env.NODE_ENV !== 'production') {
                         console.log('[Mercure] Refresh successful. Reconnecting.');
                     }
                     context.dispatch('registerEventSource');
-                }).catch((error) => {
-                    console.error('[Mercure] Token could not be renewed. Error: ' + error.data);
+                }).catch(error => {
+                    console.error('[Mercure] Token could not be renewed. Error: ' + error);
                 });
             } else {
                context.dispatch('registerEventSource');
