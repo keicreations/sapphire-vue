@@ -122,6 +122,12 @@ const actions = {
         }
     },
     registerEventSource(context) {
+        if (context.getters.calculatedMercureUri.toString() === null) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Mercure] tried to connect to null');
+            }
+            return;
+        }
         context.state.eventSource = new EventSourcePolyfill(context.getters.calculatedMercureUri, {
             headers: {
                 Authorization: 'Bearer ' + context.state.token
