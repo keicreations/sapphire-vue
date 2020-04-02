@@ -122,7 +122,7 @@ const actions = {
         }
     },
     registerEventSource(context) {
-        if (context.getters.calculatedMercureUri.toString() === null) {
+        if (context.getters.calculatedMercureUri === null || context.getters.calculatedMercureUri.toString() === null) {
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[Mercure] tried to connect to null');
             }
