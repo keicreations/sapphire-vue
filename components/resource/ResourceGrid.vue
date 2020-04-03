@@ -1,16 +1,18 @@
 <template>
-    <div class="resourceList">
+    <div class="resourceGrid">
         <div v-if="title" class="d-flex align-items-center">
             <h2 class="flex-grow-1">{{ title }}<b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge></h2>
         </div>
-        <b-card :no-body="true" class="resource-list mb-4">
-            <loading v-if="items === null"></loading>
-            <b-list-group flush v-else-if="items.length > 0">
-                <b-list-group-item :to="canView ? contextRoute+'/'+item.id+'/view' : null" :key="item.id" v-for="item in items">
-                    <div class="item">
-                        <slot :item="item" name="item">
-                            <div class="display">{{item[displayProperty]}}</div>
-                        </slot>
+        <b-row :no-gutters="noGutters" class="resource-list mb-4">
+            <b-col cols="12" v-if="items === null">
+                <slot name="loading">
+                    <loading ></loading>
+                </slot>
+            </b-col>
+            <b-col :col="col" :cols="cols" :xs="xs" :sm="sm" :md="md" :lg="lg" :key="item.id" v-else-if="items.length" v-for="item in items">
+                <slot :item="item" name="item">
+                    <b-card :to="canView ? contextRoute+'/'+item.id+'/view' : null" class="item">
+                        <div class="display">{{item[displayProperty]}}</div>
                         <div class="action" v-if="canUpdate">
                             <b-button :to="contextRoute+'/'+item.id+'/update'" variant="link">
                                 <font-awesome-icon :icon="['far', 'pencil-alt']"/>
@@ -21,11 +23,17 @@
                                 <font-awesome-icon :icon="['far', 'trash-alt']"/>
                             </b-button>
                         </div>
+                    </b-card>
+                </slot>
+            </b-col>
+            <b-col cols="12" v-else>
+                <slot name="no-items">
+                    <div class="text-center py-4">
+                        No items found
                     </div>
-                </b-list-group-item>
-            </b-list-group>
-            <div class="text-center py-4" v-else>No items found</div>
-        </b-card>
+                </slot>
+            </b-col>
+        </b-row>
         <div class="d-flex">
             <div class="flex-grow-1">
                 <b-pagination class="mb-0" v-if="showPagination && items !== null" v-model="currentPage" size="md" @change="setPage" :per-page="getPageSize()" :total-rows="itemCount">
@@ -44,7 +52,7 @@
     import ResourceCollection from "./ResourceCollection";
 
     export default {
-        name: "ResourceList",
+        name: "ResourceGrid",
         components: {Loading},
         extends: ResourceCollection,
         props: {
@@ -73,6 +81,28 @@
             listActions: {
                 type: Array,
                 default: () => [],
+            },
+            noGutters: {
+                type: Boolean,
+                default: false,
+            },
+            xs: {
+                type: String,
+            },
+            sm: {
+                type: String,
+            },
+            md: {
+                type: String,
+            },
+            lg: {
+                type: String,
+            },
+            cols: {
+                type: String,
+            },
+            col: {
+                type: Boolean,
             },
         },
         computed: {
