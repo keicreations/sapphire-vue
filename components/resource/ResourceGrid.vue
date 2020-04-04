@@ -9,7 +9,7 @@
                     <loading ></loading>
                 </slot>
             </b-col>
-            <b-col :col="col" :cols="cols" :xs="xs" :sm="sm" :md="md" :lg="lg" :key="item.id" v-else-if="items.length" v-for="item in items">
+            <b-col :col="col" :cols="cols" :xs="xs" :sm="sm" :md="md" :lg="lg" :xl="xl" :key="item.id" v-else-if="items.length" v-for="item in items">
                 <slot :item="item" name="item">
                     <b-card :to="canView ? contextRoute+'/'+item.id+'/view' : null" class="item">
                         <div class="display">{{item[displayProperty]}}</div>
@@ -96,6 +96,9 @@
                 type: String,
             },
             lg: {
+                type: String,
+            },
+            xl: {
                 type: String,
             },
             cols: {
