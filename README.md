@@ -17,7 +17,7 @@ Sapphire Vue is a [Vue.js][vue-js] library to handle [Api Platform][api-platform
   - Automatic connecting and reconnecting depending on the watched topics
 - Fetches user data from the [JWT token][jwt]
 
-### Vue ResourceList component 
+### Vue ResourceList/ResourceGrid component 
 - Holds a [Hydra:collection][hydra-collection]
 - Uses [slots][vue-slot] for custom templating
 - Can watch Mercure for crud operations
