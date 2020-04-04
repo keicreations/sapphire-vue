@@ -3,7 +3,7 @@
         <div v-if="title" class="d-flex align-items-center">
             <h2 class="flex-grow-1">{{ title }}<b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge></h2>
         </div>
-        <b-row :no-gutters="noGutters" class="resource-list mb-4">
+        <b-row :no-gutters="noGutters" class="mb-4">
             <b-col cols="12" v-if="items === null">
                 <slot name="loading">
                     <loading ></loading>
