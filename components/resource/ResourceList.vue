@@ -4,7 +4,13 @@
             <h2 class="flex-grow-1">{{ title }}<b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge></h2>
         </div>
         <b-card :no-body="true" class="resource-list mb-4">
-            <loading v-if="items === null"></loading>
+            <slot v-if="context === null" name="loading">
+                <loading></loading>
+            </slot>
+            <slot name="error" v-else-if="context === '/api/contexts/Error'">
+                <h3>{{ item['hydra:title'] }}</h3>
+                <p>{{ item['hydra:description'] }}</p>
+            </slot>
             <b-list-group flush v-else-if="items.length > 0">
                 <b-list-group-item :to="canView ? contextRoute+'/'+item.id+'/view' : null" :key="item.id" v-for="item in items">
                     <div class="item">
@@ -24,7 +30,9 @@
                     </div>
                 </b-list-group-item>
             </b-list-group>
-            <div class="text-center py-4" v-else>No items found</div>
+            <slot name="no-items" v-else>
+                <div class="text-center py-4">No items found</div>
+            </slot>
         </b-card>
         <div class="d-flex">
             <div class="flex-grow-1">

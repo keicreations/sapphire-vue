@@ -4,9 +4,17 @@
             <h2 class="flex-grow-1">{{ title }}<b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge></h2>
         </div>
         <b-row :no-gutters="noGutters" class="mb-4">
-            <b-col cols="12" v-if="items === null">
+            <b-col cols="12" v-if="context === null">
                 <slot name="loading">
                     <loading ></loading>
+                </slot>
+            </b-col>
+            <b-col cols="12" v-else-if="context === '/api/contexts/Error'">
+                <slot name="error">
+                    <b-card>
+                        <h3>{{ item['hydra:title'] }}</h3>
+                        <p>{{ item['hydra:description'] }}</p>
+                    </b-card>
                 </slot>
             </b-col>
             <b-col :col="col" :cols="cols" :xs="xs" :sm="sm" :md="md" :lg="lg" :xl="xl" :key="item.id" v-else-if="items.length" v-for="item in items">

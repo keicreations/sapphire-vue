@@ -1,16 +1,16 @@
 <template>
     <div class="resource-item">
         <h2 v-if="title">{{ title }}</h2>
-        <div v-if="item === null">
+        <slot name="loading" v-if="item === null">
             <loading></loading>
-        </div>
+        </slot>
         <slot v-else :item="item" name="item"></slot>
     </div>
 </template>
 
 <script>
     import api from '@keicreations/sapphire-vue/lib/api-platform';
-    import Loading from "./Loading";
+    import Loading from "./../ui/Loading";
 
     export default {
         name: "ResourceItem",

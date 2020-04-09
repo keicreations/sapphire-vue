@@ -83,7 +83,7 @@ const actions = {
             context.commit('setUser', null);
         }
         else {
-            api.authenticated().get('/api/users/' + userId).then(response => {
+            api.authenticated().get('/api/users/me').then(response => {
                 context.commit('setUser', response.data);
             }).catch(() => {
                 context.commit('setUser', null);
