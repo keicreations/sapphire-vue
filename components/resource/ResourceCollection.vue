@@ -62,7 +62,7 @@
                 this.page = response.data;
                 this.$emit('refresh', response.data);
                 let mercureHub = response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/);
-                if (this.mercureEnabled && Array.isArray(mercureHub) && mercureHub.length > 1) {
+                if (this.mercureEnabled() && Array.isArray(mercureHub) && mercureHub.length > 1) {
                     let topic = process.env.VUE_APP_API_URL + this.page['@id'] + '/{id}';
                     let payload = {
                         hub: mercureHub[1].split('?')[0],
