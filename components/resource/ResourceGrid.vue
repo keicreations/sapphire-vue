@@ -12,8 +12,8 @@
             <b-col cols="12" v-else-if="context === '/api/contexts/Error'">
                 <slot name="error">
                     <b-card>
-                        <h3>{{ item['hydra:title'] }}</h3>
-                        <p>{{ item['hydra:description'] }}</p>
+                        <h3>{{ page['hydra:title'] }}</h3>
+                        <p>{{ page['hydra:description'] }}</p>
                     </b-card>
                 </slot>
             </b-col>

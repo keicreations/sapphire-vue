@@ -8,8 +8,10 @@
                 <loading></loading>
             </slot>
             <slot name="error" v-else-if="context === '/api/contexts/Error'">
-                <h3>{{ item['hydra:title'] }}</h3>
-                <p>{{ item['hydra:description'] }}</p>
+                <div class="py-4">
+                    <h3>{{ page['hydra:title'] }}</h3>
+                    <p>{{ page['hydra:description'] }}</p>
+                </div>
             </slot>
             <b-list-group flush v-else-if="items.length > 0">
                 <b-list-group-item :to="canView ? contextRoute+'/'+item.id+'/view' : null" :key="item.id" v-for="item in items">
