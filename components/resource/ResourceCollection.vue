@@ -75,7 +75,10 @@
                     });
                 }
             }).catch(error => {
-                if (error.request || error.response) {
+                if (error.response) {
+                    this.page = error.response.data;
+                }
+                else if (error.request) {
                     this.page = null;
                 }
                 else {
@@ -92,10 +95,30 @@
         },
         computed: {
             items() {
-                return this.page ? this.page['hydra:member'] : null;
+                if (this.page) {
+                    if (this.page['hydra:member']) {
+                        return this.page['hydra:member'];
+                    }
+                    else {
+                        return [];
+                    }
+                }
+                else {
+                    return null;
+                }
             },
             itemCount() {
-                return this.page ? this.page['hydra:totalItems'] : null;
+                if (this.page) {
+                    if (this.page['hydra:totalItems']) {
+                        return this.page['hydra:totalItems'];
+                    }
+                    else {
+                        return null;
+                    }
+                }
+                else {
+                    return null;
+                }
             },
             currentUri() {
                 if (this.uri.includes('?')) {
@@ -172,6 +195,16 @@
                 api.authenticated().get(this.currentUri).then(response => {
                     this.page = response.data;
                     this.$emit('refresh', response.data);
+                }).catch(error => {
+                    if (error.response) {
+                        this.page = error.response.data;
+                    }
+                    else if (error.request) {
+                        this.page = null;
+                    }
+                    else {
+                        throw error;
+                    }
                 });
             },
             handleMercureEvent(event) {
