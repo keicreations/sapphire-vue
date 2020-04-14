@@ -8,7 +8,7 @@
                 <loading></loading>
             </slot>
             <slot name="error" v-else-if="context === '/api/contexts/Error'">
-                <div class="py-4">
+                <div class="p-4">
                     <h3>{{ page['hydra:title'] }}</h3>
                     <p>{{ page['hydra:description'] }}</p>
                 </div>
