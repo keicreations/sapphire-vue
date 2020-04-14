@@ -38,7 +38,9 @@ const actions = {
                 context.dispatch('setToken', response.data.token);
                 resolve(response.data.token);
             }).catch(error => {
-                context.dispatch('clear');
+                if (error.response && error.response.status === 401) {
+                    context.dispatch('clear');
+                }
                 reject(error);
             });
         });
