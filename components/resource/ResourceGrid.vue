@@ -21,7 +21,7 @@
                 <slot :item="item" name="item">
                     <b-card class="item">
                         <div class="display">
-                            <b-link class="stretched-link" v-if="canView" :to="contextRoute+'/'+item.id+'/view'">
+                            <b-link v-if="canView" :to="contextRoute+'/'+item.id+'/view'">
                                 {{item[displayProperty]}}
                             </b-link>
                             <span v-else>
