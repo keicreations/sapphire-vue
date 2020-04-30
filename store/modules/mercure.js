@@ -13,6 +13,10 @@ const state = {
     eventSource: null,
     currentMercureUri: null,
     handlerLastId: 1,
+    reconnectTimer: null,
+    reconnectTimeout: 1,
+    visibilityListener: null,
+    wasInvisible: false,
 };
 const getters = {
     calculatedMercureUri: (state) => {
@@ -109,6 +113,7 @@ const actions = {
     },
     unregisterHandlerId(context, id) {
         context.commit('removeHandlerId', id);
+        context.dispatch('clearReconnectTimer');
 
         // if (process.env.NODE_ENV !== 'production') {
         //     console.log('[Mercure] Current handler count: ' + context.state.handlers.length);
@@ -134,11 +139,46 @@ const actions = {
             }
         });
         context.state.eventSource.onmessage = context.getters.handler;
-        if (process.env.NODE_ENV !== 'production') {
-            console.log('[Mercure] Connected.')
+        context.state.eventSource.onerror = error => {
+            context.dispatch('disconnect');
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Mercure] Connection problem! Trying reconnect in ' + context.state.reconnectTimeout + ' seconds');
+            }
+            context.commit('setReconnectTimer', setTimeout(() => {
+                context.dispatch('startPersistentConnection');
+            }, context.state.reconnectTimeout * 1000));
+            context.commit('incrementReconnectTimeout');
+        }
+        context.state.eventSource.onopen = () => {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Mercure] Connected');
+            }
+            context.dispatch('clearReconnectTimer');
         }
     },
-    connect(context, payload) {
+    startPersistentConnection(context) {
+        let expirationTimestamp = jwt_decode(context.state.token).exp;
+        if (moment.unix(expirationTimestamp).isBefore(moment())) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Mercure] Token expired! Refreshing');
+            }
+            context.dispatch('useRefreshToken').then(() => {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log('[Mercure] Refresh successful');
+                }
+                context.dispatch('registerEventSource');
+            }).catch(error => {
+                console.error('[Mercure] Token could not be renewed. Error: ' + error);
+            });
+        } else {
+            context.dispatch('registerEventSource');
+        }
+    },
+    clearReconnectTimer(context) {
+        context.commit('clearReconnectTimer');
+        context.commit('resetReconnectTimeout');
+    },
+    connect(context) {
         if (!context.state.refreshToken) {
             context.dispatch('loadRefreshToken');
         }
@@ -150,22 +190,9 @@ const actions = {
             if (context.state.eventSource !== null) {
                 context.dispatch('disconnect');
             }
-            let expirationTimestamp = jwt_decode(context.state.token).exp;
-            if (moment.unix(expirationTimestamp).isBefore(moment())) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.log('[Mercure] Token expired! Refreshing.');
-                }
-                context.dispatch('useRefreshToken').then(() => {
-                    if (process.env.NODE_ENV !== 'production') {
-                        console.log('[Mercure] Refresh successful. Reconnecting.');
-                    }
-                    context.dispatch('registerEventSource');
-                }).catch(error => {
-                    console.error('[Mercure] Token could not be renewed. Error: ' + error);
-                });
-            } else {
-               context.dispatch('registerEventSource');
-            }
+            context.dispatch('clearReconnectTimer')
+            context.dispatch('startPersistentConnection');
+            context.dispatch('addVisibilityListener');
         }
     },
     disconnect(context) {
@@ -178,13 +205,53 @@ const actions = {
             }
         }
     },
+    addVisibilityListener(context) {
+        context.dispatch('setVisibilityListener', () => {
+            if (document.visibilityState === 'hidden') {
+                context.commit('setWasInvisible', true);
+            }
+            if (document.visibilityState === 'visible' && context.state.wasInvisible) {
+                context.commit('setWasInvisible', false);
+                if (context.state.reconnectTimer) {
+                    context.dispatch('clearReconnectTimer')
+                    context.dispatch('startPersistentConnection');
+                }
+            }
+        });
+    },
+    setVisibilityListener(context, payload) {
+        document.removeEventListener('visibilitychange', state.visibilityListener);
+        context.commit('setVisibilityListener', payload);
+        document.addEventListener('visibilitychange', payload);
+    },
 };
 const mutations = {
     incrementHandlerId(state) {
         state.handlerLastId++;
     },
+    setVisibilityListener(state, payload) {
+        state.visibilityListener = payload;
+    },
+    setWasInvisible(state, payload) {
+        state.wasInvisible = payload;
+    },
     setToken(state, token) {
         state.token = token;
+    },
+    clearReconnectTimer(state) {
+        clearTimeout(state.reconnectTimer);
+        state.reconnectTimer = null;
+    },
+    incrementReconnectTimeout(state) {
+        if (state.reconnectTimeout < 64) {
+            state.reconnectTimeout *= 2;
+        }
+    },
+    setReconnectTimer(state, timer) {
+        state.reconnectTimer = timer;
+    },
+    resetReconnectTimeout(state) {
+        state.reconnectTimeout = 1;
     },
     setRefreshToken(state, token) {
         state.refreshToken = token;
@@ -206,7 +273,7 @@ const mutations = {
                     console.log('[Mercure] Removing handler for topic "' + registeredHandler.topic + '" with id "' + id + '"');
                     found = true;
                 }
-            })
+            });
             if (!found) {
                 console.log('[Mercure] Could not remove handler with id "' + id + '" since it is not registered');
             }
