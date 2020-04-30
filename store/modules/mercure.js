@@ -15,6 +15,8 @@ const state = {
     handlerLastId: 1,
     reconnectTimer: null,
     reconnectTimeout: 1,
+    visibilityListener: null,
+    wasInvisible: false,
 };
 const getters = {
     calculatedMercureUri: (state) => {
@@ -191,8 +193,10 @@ const actions = {
             context.dispatch('clearReconnectTimer')
             context.dispatch('startPersistentConnection');
         }
+        context.dispatch('addVisibilityListener');
     },
     disconnect(context) {
+        context.commit('clearVisibilityListener');
         if (context.state.eventSource !== null) {
             context.state.eventSource.close();
             context.state.eventSource = null;
@@ -202,10 +206,31 @@ const actions = {
             }
         }
     },
+    addVisibilityListener(context) {
+        context.commit('setVisibilityListener', () => {
+            if (document.visibilityState === 'hidden') {
+                context.commit('setWasInvisible', true);
+            }
+            if (document.visibilityState === 'visible' && context.state.wasInvisible && context.state.reconnectTimer) {
+                context.commit('setWasInvisible', false);
+                context.dispatch('clearReconnectTimer')
+                context.dispatch('startPersistentConnection');
+            }
+        });
+    },
 };
 const mutations = {
     incrementHandlerId(state) {
         state.handlerLastId++;
+    },
+    setVisibilityListener(state, payload) {
+        state.visibilityListener = document.addEventListener('visibilitychange', payload)
+    },
+    clearVisibilityListener(state) {
+        document.removeEventListener('visibilitychange', state.visibilityListener);
+    },
+    setWasInvisible(state, payload) {
+        state.wasInvisible = payload;
     },
     setToken(state, token) {
         state.token = token;
