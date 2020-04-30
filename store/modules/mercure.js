@@ -13,9 +13,8 @@ const state = {
     eventSource: null,
     currentMercureUri: null,
     handlerLastId: 1,
-    reconnectSeconds: 1,
-    previousMercureUri: null,
-    currentReconnectTimer: null,
+    reconnectTimer: null,
+    reconnectTimeout: 1,
 };
 const getters = {
     calculatedMercureUri: (state) => {
@@ -118,6 +117,7 @@ const actions = {
         // }
 
         if (context.state.handlers.length === 0) {
+            context.dispatch('clearReconnectTimer');
             context.dispatch('disconnect');
         }
         else {
@@ -125,10 +125,6 @@ const actions = {
         }
     },
     registerEventSource(context) {
-        if (context.state.currentMercureUri !== context.state.previousMercureUri) {
-            context.commit('resetReconnectTimer');
-        }
-        context.commit('setPreviousMercureUrl', context.state.currentMercureUri);
         if (context.getters.calculatedMercureUri === null || context.getters.calculatedMercureUri.toString() === null) {
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[Mercure] tried to connect to null');
@@ -140,28 +136,47 @@ const actions = {
                 Authorization: 'Bearer ' + context.state.token
             }
         });
-        context.state.eventSource.onopen = () => {
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('[Mercure] Successfully connected')
-                context.commit('resetReconnectTimer')
-            }
-        }
         context.state.eventSource.onmessage = context.getters.handler;
         context.state.eventSource.onerror = error => {
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('[Mercure] !!Encountered an error!!')
-            }
             context.dispatch('disconnect');
             if (process.env.NODE_ENV !== 'production') {
-                console.log('[Mercure] Retrying in ' + context.state.reconnectSeconds + ' secs')
+                console.log('[Mercure] Connection problem! Trying reconnect in ' + context.state.reconnectTimeout + ' seconds');
             }
-            context.commit('setCurrentReconnectTimer', setTimeout(() => {
-                context.dispatch('connect');
-            }, context.state.reconnectSeconds * 1000));
-            context.commit('incrementReconnectSeconds')
+            context.commit('setReconnectTimer', setTimeout(() => {
+                context.dispatch('startPersistentConnection');
+            }, context.state.reconnectTimeout * 1000));
+            context.commit('incrementReconnectTimeout');
+        }
+        context.state.eventSource.onopen = () => {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Mercure] Connected');
+            }
+            context.dispatch('clearReconnectTimer')
         }
     },
-    connect(context, payload) {
+    startPersistentConnection(context) {
+        let expirationTimestamp = jwt_decode(context.state.token).exp;
+        if (moment.unix(expirationTimestamp).isBefore(moment())) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Mercure] Token expired! Refreshing');
+            }
+            context.dispatch('useRefreshToken').then(() => {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log('[Mercure] Refresh successful');
+                }
+                context.dispatch('registerEventSource');
+            }).catch(error => {
+                console.error('[Mercure] Token could not be renewed. Error: ' + error);
+            });
+        } else {
+            context.dispatch('registerEventSource');
+        }
+    },
+    clearReconnectTimer(context) {
+        context.commit('clearReconnectTimer');
+        context.commit('resetReconnectTimeout');
+    },
+    connect(context) {
         if (!context.state.refreshToken) {
             context.dispatch('loadRefreshToken');
         }
@@ -173,22 +188,8 @@ const actions = {
             if (context.state.eventSource !== null) {
                 context.dispatch('disconnect');
             }
-            let expirationTimestamp = jwt_decode(context.state.token).exp;
-            if (moment.unix(expirationTimestamp).isBefore(moment())) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.log('[Mercure] Token expired! Refreshing.');
-                }
-                context.dispatch('useRefreshToken').then(() => {
-                    if (process.env.NODE_ENV !== 'production') {
-                        console.log('[Mercure] Refresh successful. Reconnecting.');
-                    }
-                    context.dispatch('registerEventSource');
-                }).catch(error => {
-                    console.error('[Mercure] Token could not be renewed. Error: ' + error);
-                });
-            } else {
-                context.dispatch('registerEventSource');
-            }
+            context.dispatch('clearReconnectTimer')
+            context.dispatch('startPersistentConnection');
         }
     },
     disconnect(context) {
@@ -206,29 +207,28 @@ const mutations = {
     incrementHandlerId(state) {
         state.handlerLastId++;
     },
-    setCurrentReconnectTimer(state, timer) {
-        state.currentReconnectTimer = timer;
-    },
-    resetReconnectTimer(state) {
-        state.reconnectSeconds = 1;
-        clearTimeout(state.currentReconnectTimer);
-    },
-    incrementReconnectSeconds(state) {
-        if (state.reconnectSeconds < 64) {
-            state.reconnectSeconds *= 2;
-        }
-    },
     setToken(state, token) {
         state.token = token;
+    },
+    clearReconnectTimer(state) {
+        clearTimeout(state.reconnectTimer);
+    },
+    incrementReconnectTimeout(state) {
+        if (state.reconnectTimeout < 64) {
+            state.reconnectTimeout *= 2;
+        }
+    },
+    setReconnectTimer(state, timer) {
+        state.reconnectTimer = timer;
+    },
+    resetReconnectTimeout(state) {
+        state.reconnectTimeout = 1;
     },
     setRefreshToken(state, token) {
         state.refreshToken = token;
     },
     setCurrentMercureUrl(state, uri) {
         state.currentMercureUri = uri;
-    },
-    setPreviousMercureUrl(state, uri) {
-        state.previousMercureUri = uri;
     },
     addHandler(state, handler) {
         if (process.env.NODE_ENV !== 'production') {
