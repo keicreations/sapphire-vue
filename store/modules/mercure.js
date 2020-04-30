@@ -111,13 +111,13 @@ const actions = {
     },
     unregisterHandlerId(context, id) {
         context.commit('removeHandlerId', id);
+        context.dispatch('clearReconnectTimer');
 
         // if (process.env.NODE_ENV !== 'production') {
         //     console.log('[Mercure] Current handler count: ' + context.state.handlers.length);
         // }
 
         if (context.state.handlers.length === 0) {
-            context.dispatch('clearReconnectTimer');
             context.dispatch('disconnect');
         }
         else {
@@ -244,7 +244,7 @@ const mutations = {
                     console.log('[Mercure] Removing handler for topic "' + registeredHandler.topic + '" with id "' + id + '"');
                     found = true;
                 }
-            })
+            });
             if (!found) {
                 console.log('[Mercure] Could not remove handler with id "' + id + '" since it is not registered');
             }
