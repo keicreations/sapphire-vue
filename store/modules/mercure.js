@@ -153,7 +153,7 @@ const actions = {
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[Mercure] Connected');
             }
-            context.dispatch('clearReconnectTimer')
+            context.dispatch('clearReconnectTimer');
         }
     },
     startPersistentConnection(context) {
@@ -192,11 +192,10 @@ const actions = {
             }
             context.dispatch('clearReconnectTimer')
             context.dispatch('startPersistentConnection');
+            context.dispatch('addVisibilityListener');
         }
-        context.dispatch('addVisibilityListener');
     },
     disconnect(context) {
-        context.commit('clearVisibilityListener');
         if (context.state.eventSource !== null) {
             context.state.eventSource.close();
             context.state.eventSource = null;
@@ -207,16 +206,23 @@ const actions = {
         }
     },
     addVisibilityListener(context) {
-        context.commit('setVisibilityListener', () => {
+        context.dispatch('setVisibilityListener', () => {
             if (document.visibilityState === 'hidden') {
                 context.commit('setWasInvisible', true);
             }
-            if (document.visibilityState === 'visible' && context.state.wasInvisible && context.state.reconnectTimer) {
+            if (document.visibilityState === 'visible' && context.state.wasInvisible) {
                 context.commit('setWasInvisible', false);
-                context.dispatch('clearReconnectTimer')
-                context.dispatch('startPersistentConnection');
+                if (context.state.reconnectTimer) {
+                    context.dispatch('clearReconnectTimer')
+                    context.dispatch('startPersistentConnection');
+                }
             }
         });
+    },
+    setVisibilityListener(context, payload) {
+        document.removeEventListener('visibilitychange', state.visibilityListener);
+        context.commit('setVisibilityListener', payload);
+        document.addEventListener('visibilitychange', payload);
     },
 };
 const mutations = {
@@ -224,10 +230,7 @@ const mutations = {
         state.handlerLastId++;
     },
     setVisibilityListener(state, payload) {
-        state.visibilityListener = document.addEventListener('visibilitychange', payload)
-    },
-    clearVisibilityListener(state) {
-        document.removeEventListener('visibilitychange', state.visibilityListener);
+        state.visibilityListener = payload;
     },
     setWasInvisible(state, payload) {
         state.wasInvisible = payload;
@@ -237,6 +240,7 @@ const mutations = {
     },
     clearReconnectTimer(state) {
         clearTimeout(state.reconnectTimer);
+        state.reconnectTimer = null;
     },
     incrementReconnectTimeout(state) {
         if (state.reconnectTimeout < 64) {
