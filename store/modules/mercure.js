@@ -275,7 +275,7 @@ const mutations = {
                 }
             });
             if (!found) {
-                console.log('[Mercure] Could not remove handler with id "' + id + '" since it is not registered');
+                console.log('[Mercure] Could not remove handler with id "' + id + '" since it is not registered');;
             }
         }
         state.handlers = state.handlers.filter(registeredHandler => registeredHandler.id !== id);
