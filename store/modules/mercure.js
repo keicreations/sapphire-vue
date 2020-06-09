@@ -92,7 +92,7 @@ const actions = {
     },
     setRefreshToken(context, token) {
         if (token === null) {
-            localStorage.removeItem(context.state.refreshTokenKey)
+            localStorage.removeItem(context.state.refreshTokenKey);
         } else {
             localStorage.setItem(context.state.refreshTokenKey, token);
         }
