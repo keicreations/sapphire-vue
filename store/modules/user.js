@@ -76,9 +76,9 @@ const actions = {
 
             if (typeof token !== 'undefined' && token !== null) {
                 let payload = jwt_decode(token);
-                context.dispatch('setUser', payload.user_id).then(resolve);
+                context.dispatch('setUser', payload.user_id).then(resolve).catch(reject);
             } else {
-                context.dispatch('setUser', null).then(resolve);
+                context.dispatch('setUser', null).then(resolve).catch(reject);
             }
         });
     },
@@ -86,6 +86,7 @@ const actions = {
         return new Promise((resolve, reject) => {
             if (userId === null || typeof userId === 'undefined') {
                 context.commit('setUser', null);
+                resolve();
             }
             else {
                 api.authenticated().get('/api/users/me').then(response => {
@@ -93,7 +94,7 @@ const actions = {
                     resolve();
                 }).catch(() => {
                     context.commit('setUser', null);
-                    resolve();
+                    reject();
                 });
             }
 
