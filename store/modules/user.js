@@ -71,26 +71,33 @@ const actions = {
         context.commit('setRefreshToken', localStorage.getItem(context.state.refreshTokenKey));
     },
     setToken(context, token) {
-        context.dispatch('storeToken', token);
+        return new Promise((resolve, reject) => {
+            context.dispatch('storeToken', token);
 
-        if (typeof token !== 'undefined' && token !== null) {
-            let payload = jwt_decode(token);
-            context.dispatch('setUser', payload.user_id);
-        } else {
-            context.dispatch('setUser', null);
-        }
+            if (typeof token !== 'undefined' && token !== null) {
+                let payload = jwt_decode(token);
+                context.dispatch('setUser', payload.user_id).then(resolve);
+            } else {
+                context.dispatch('setUser', null).then(resolve);
+            }
+        });
     },
     setUser(context, userId) {
-        if (userId === null || typeof userId === 'undefined') {
-            context.commit('setUser', null);
-        }
-        else {
-            api.authenticated().get('/api/users/me').then(response => {
-                context.commit('setUser', response.data);
-            }).catch(() => {
+        return new Promise((resolve, reject) => {
+            if (userId === null || typeof userId === 'undefined') {
                 context.commit('setUser', null);
-            });
-        }
+            }
+            else {
+                api.authenticated().get('/api/users/me').then(response => {
+                    context.commit('setUser', response.data);
+                    resolve();
+                }).catch(() => {
+                    context.commit('setUser', null);
+                    resolve();
+                });
+            }
+
+        });
     }
 };
 
