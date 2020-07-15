@@ -6,6 +6,7 @@ const state = {
     tokenKey: 'token',
     refreshToken: null,
     refreshTokenKey: 'refreshToken',
+    userUri: '/api/users/me',
     user: null,
 };
 
@@ -22,6 +23,9 @@ const mutations = {
     setUserId(state, userId) {
         state.userId = userId;
     },
+    setUserUri(state, uri) {
+        state.userUri = uri;
+    }
 };
 
 const getters = {};
@@ -82,6 +86,9 @@ const actions = {
             }
         });
     },
+    setUserUri(context, uri) {
+        context.commit('setUserUri', uri);
+    },
     setUser(context, userId) {
         return new Promise((resolve, reject) => {
             if (userId === null || typeof userId === 'undefined') {
@@ -89,7 +96,7 @@ const actions = {
                 resolve();
             }
             else {
-                api.authenticated().get('/api/users/me').then(response => {
+                api.authenticated().get(context.state.userUri).then(response => {
                     context.commit('setUser', response.data);
                     resolve();
                 }).catch(() => {
