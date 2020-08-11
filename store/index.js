@@ -2,7 +2,6 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import user from './modules/user';
 import mercure from './modules/mercure';
-import api from './../lib/api-platform'
 
 Vue.use(Vuex);
 
@@ -14,7 +13,7 @@ export default new Vuex.Store({
     actions: {
         login(context, payload) {
             return new Promise((resolve, reject) => {
-                api.anonymous().post('/authentication_token', {
+                Vue.$api.anonymous().post('/authentication_token', {
                     email: payload.username,
                     password: payload.password,
                 }).then(response => {
