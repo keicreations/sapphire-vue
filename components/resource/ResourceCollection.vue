@@ -4,7 +4,6 @@
 
 <script>
     import Loading from "./../ui/Loading";
-    import api from "./../../lib/api-platform";
 
     export default {
         name: "ResourceCollection",
@@ -58,7 +57,7 @@
             }
         },
         created() {
-            api.authenticated().get(this.currentUri).then(response => {
+            this.$api.authenticated().get(this.currentUri).then(response => {
                 this.page = response.data;
                 this.$emit('refresh', response.data);
                 let mercureHub = response.headers.link.match(/<([^>]+)>;\s+rel="[^"]*mercure[^"]*"/);
@@ -192,7 +191,7 @@
                 this.$emit('delete', payload);
             },
             refresh() {
-                api.authenticated().get(this.currentUri).then(response => {
+                this.$api.authenticated().get(this.currentUri).then(response => {
                     this.page = response.data;
                     this.$emit('refresh', response.data);
                 }).catch(error => {
