@@ -67,9 +67,8 @@ const actions = {
             }).then(response => {
                 context.dispatch('setToken', response.data.mercure_token);
                 resolve(response.data.token);
-            }).catch(error => {
+            }).catch(() => {
                 context.dispatch('clear');
-                reject(error);
             });
         });
     },
