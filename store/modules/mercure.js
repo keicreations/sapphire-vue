@@ -69,6 +69,7 @@ const actions = {
                 resolve(response.data.token);
             }).catch(() => {
                 context.dispatch('clear');
+                reject(error);
             });
         });
     },

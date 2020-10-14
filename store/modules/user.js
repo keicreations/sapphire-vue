@@ -29,7 +29,7 @@ const actions = {
     clear(context) {
         context.dispatch('setRefreshToken', null);
         context.dispatch('setToken', null);
-        window.location.replace('/');
+        context.dispatch('setUser', null);
     },
     useRefreshToken(context) {
         return new Promise((resolve, reject) => {
@@ -40,6 +40,7 @@ const actions = {
                 resolve(response.data.token);
             }).catch(error => {
                 context.dispatch('clear');
+                reject(error);
             });
         });
     },
