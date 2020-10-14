@@ -33,6 +33,7 @@ const actions = {
     clear(context) {
         context.dispatch('setRefreshToken', null);
         context.dispatch('setToken', null);
+        context.dispatch('setUser', null);
     },
     useRefreshToken(context) {
         return new Promise((resolve, reject) => {
@@ -42,9 +43,7 @@ const actions = {
                 context.dispatch('setToken', response.data.token);
                 resolve(response.data.token);
             }).catch(error => {
-                if (error.response && error.response.status === 401) {
-                    context.dispatch('clear');
-                }
+                context.dispatch('clear');
                 reject(error);
             });
         });
