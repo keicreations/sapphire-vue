@@ -6,6 +6,7 @@ const state = {
     tokenKey: 'token',
     refreshToken: null,
     refreshTokenKey: 'refreshToken',
+    userUri: '/api/users/me',
     user: null,
 };
 
@@ -22,6 +23,9 @@ const mutations = {
     setUserId(state, userId) {
         state.userId = userId;
     },
+    setUserUri(state, uri) {
+        state.userUri = uri;
+    }
 };
 
 const getters = {};
@@ -70,26 +74,37 @@ const actions = {
         context.commit('setRefreshToken', localStorage.getItem(context.state.refreshTokenKey));
     },
     setToken(context, token) {
-        context.dispatch('storeToken', token);
+        return new Promise((resolve, reject) => {
+            context.dispatch('storeToken', token);
 
-        if (typeof token !== 'undefined' && token !== null) {
-            let payload = jwt_decode(token);
-            context.dispatch('setUser', payload.user_id);
-        } else {
-            context.dispatch('setUser', null);
-        }
+            if (typeof token !== 'undefined' && token !== null) {
+                let payload = jwt_decode(token);
+                context.dispatch('setUser', payload.user_id).then(resolve).catch(reject);
+            } else {
+                context.dispatch('setUser', null).then(resolve).catch(reject);
+            }
+        });
+    },
+    setUserUri(context, uri) {
+        context.commit('setUserUri', uri);
     },
     setUser(context, userId) {
-        if (userId === null || typeof userId === 'undefined') {
-            context.commit('setUser', null);
-        }
-        else {
-            api.authenticated().get('/api/users/me').then(response => {
-                context.commit('setUser', response.data);
-            }).catch(() => {
+        return new Promise((resolve, reject) => {
+            if (userId === null || typeof userId === 'undefined') {
                 context.commit('setUser', null);
-            });
-        }
+                resolve();
+            }
+            else {
+                api.authenticated().get(context.state.userUri).then(response => {
+                    context.commit('setUser', response.data);
+                    resolve();
+                }).catch(() => {
+                    context.commit('setUser', null);
+                    reject();
+                });
+            }
+
+        });
     }
 };
 

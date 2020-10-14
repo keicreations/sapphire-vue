@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import user from './modules/user';
 import mercure from './modules/mercure';
-import api from './../lib/api-platform'
+import api from '../lib/api-platform.js';
 
 Vue.use(Vuex);
 
@@ -18,11 +18,12 @@ export default new Vuex.Store({
                     email: payload.username,
                     password: payload.password,
                 }).then(response => {
-                    context.dispatch('user/setToken', response.data.token);
-                    context.dispatch('user/setRefreshToken', response.data.refresh_token);
-                    context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
-                    context.dispatch('mercure/useRefreshToken');
-                    resolve();
+                    context.dispatch('user/setToken', response.data.token).then(() => {
+                        context.dispatch('user/setRefreshToken', response.data.refresh_token);
+                        context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
+                        context.dispatch('mercure/useRefreshToken');
+                        resolve();
+                    });
                 }).catch(reason => {
                     context.dispatch('user/setToken', null);
                     context.dispatch('user/setRefreshToken', null);
