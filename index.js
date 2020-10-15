@@ -31,6 +31,6 @@ export default {
         // })
 
         // 4. add an instance method
-        Vue.prototype.$api = options.api ? options.api : api;
+        Vue.prototype.$api = (options && options.api) ? options.api : api;
     }
 }
