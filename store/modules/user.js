@@ -33,7 +33,6 @@ const actions = {
     clear(context) {
         context.dispatch('setRefreshToken', null);
         context.dispatch('setToken', null);
-        context.dispatch('setUser', null);
     },
     useRefreshToken(context) {
         return new Promise((resolve, reject) => {
@@ -57,7 +56,7 @@ const actions = {
         context.commit('setToken', token);
     },
     loadToken(context) {
-        context.dispatch('setToken', localStorage.getItem(context.state.tokenKey));
+        return context.dispatch('setToken', localStorage.getItem(context.state.tokenKey));
     },
     readToken(context) {
         context.commit('setToken', localStorage.getItem(context.state.tokenKey));
