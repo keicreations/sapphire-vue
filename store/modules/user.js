@@ -32,7 +32,7 @@ const getters = {};
 const actions = {
     clear(context) {
         context.dispatch('setRefreshToken', null);
-        context.dispatch('setToken', null);
+        context.dispatch('setToken', null).catch(()=>{});
     },
     useRefreshToken(context) {
         return new Promise((resolve, reject) => {
@@ -80,7 +80,8 @@ const actions = {
                 let payload = jwt_decode(token);
                 context.dispatch('setUser', payload.user_id).then(resolve).catch(reject);
             } else {
-                context.dispatch('setUser', null).then(resolve).catch(reject);
+                context.dispatch('setUser', null);
+                reject();
             }
         });
     },
