@@ -15,7 +15,8 @@ export default {
     },
     methods: {
         redirectToLogin() {
-            if (this.$router.currentRoute.path !== '/login') {
+            const currentRoute = this.$router.currentRoute;
+            if (currentRoute.path !== '/login' && !currentRoute.meta.anonymous) {
                 this.$router.replace('/login');
             }
         }
