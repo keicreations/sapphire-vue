@@ -7,6 +7,11 @@ export default {
         this.$store.dispatch('mercure/loadToken');
     },
     watch: {
+        '$route' () {
+            if (!this.loggedIn) {
+                this.redirectToLogin();
+            }
+        },
         loggedIn(isLoggedIn) {
             if (!isLoggedIn) {
                 this.redirectToLogin();
