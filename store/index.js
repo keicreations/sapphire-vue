@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import user from './modules/user';
 import mercure from './modules/mercure';
+import toasts from "./modules/toasts";
 import api from '../lib/api-platform.js';
 
 Vue.use(Vuex);
@@ -10,6 +11,7 @@ export default new Vuex.Store({
     modules: {
         user,
         mercure,
+        toasts,
     },
     actions: {
         login(context, payload) {
