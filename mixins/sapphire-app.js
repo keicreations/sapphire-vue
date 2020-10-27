@@ -1,35 +1,58 @@
 export default {
     created() {
-        this.$store.dispatch('user/loadToken').catch(() => {
-            this.redirectToLogin();
+        this.$store.dispatch('user/loadToken').then(() => {
+            this.handleAccessControl(true);
+        }).catch(() => {
+            this.handleAccessControl(false);
         });
         this.$store.dispatch('user/loadRefreshToken');
         this.$store.dispatch('mercure/loadToken');
     },
     watch: {
         '$route' () {
-            if (!this.loggedIn) {
-                this.redirectToLogin();
-            }
+            this.handleAccessControl(this.loggedIn);
         },
         loggedIn(isLoggedIn) {
-            if (!isLoggedIn) {
-                this.redirectToLogin();
-            }
+            this.handleAccessControl(this.loggedIn);
         },
         toasts(toasts) {
             for (let i = 0; i < toasts.length; i++) {
                 const toast = toasts[i];
+                if (toast.read) {
+                    continue;
+                }
                 this.$root.$bvToast.toast(toast.message, toast);
-                this.$store.commit('toasts/removeToast', i);
+                this.$store.dispatch('toasts/markToastRead', i);
             }
         }
     },
     methods: {
-        redirectToLogin() {
+        handleAccessControl(isLoggedIn) {
             const currentRoute = this.$router.currentRoute;
-            if (currentRoute.path !== '/login' && !currentRoute.meta.anonymous) {
-                this.$router.replace('/login');
+            let accessControl = currentRoute.meta.accessControl;
+            if (!accessControl) {
+                throw new Error(`No access control defined for route ${currentRoute.path}.`)
+            }
+            if (!accessControl.anonymous && !accessControl.authenticated) {
+                throw new Error('Access control cannot be disabled for both anonymous and authenticated.');
+            }
+            if (accessControl.anonymous && !accessControl.authenticated && isLoggedIn) {
+                if (accessControl.redirectTo) {
+                    this.replaceRoute(accessControl.redirectTo);
+                } else {
+                    this.replaceRoute('/');
+                }
+            } else if (accessControl.authenticated && !accessControl.anonymous && !isLoggedIn) {
+                if (accessControl.redirectTo) {
+                    this.replaceRoute(accessControl.redirectTo);
+                } else {
+                    this.replaceRoute('/login');
+                }
+            }
+        },
+        replaceRoute(route) {
+            if (this.$router.currentRoute.path !== route) {
+                this.$router.replace(route);
             }
         }
     },
