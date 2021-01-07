@@ -80,7 +80,7 @@ export default {
     },
     computed: {
         apiSchema() {
-            return this.$store.state.app.apiSchema;
+            return this.$store.state.openApi.apiSchema;
         },
         currentResource() {
             if (this.apiSchema?.['hydra:supportedClass']) {

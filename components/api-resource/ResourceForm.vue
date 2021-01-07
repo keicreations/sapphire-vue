@@ -109,7 +109,7 @@
                 return null;
             },
             apiSchema() {
-                return this.$store.state.app.apiSchema;
+                return this.$store.state.openApi.apiSchema;
             },
             formData: {
                 get() {
