@@ -63,10 +63,6 @@
                 type: Boolean,
                 default: false,
             },
-            fieldLock: {
-                type: Array,
-                default: () => [],
-            },
             showSubmitButton: {
                 type: Boolean,
                 default: true,
