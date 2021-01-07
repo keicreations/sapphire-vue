@@ -499,7 +499,7 @@
                     throw new Error('You need to set either a resourceIdentifier or an URI');
                 }
             }
-            this.$store.dispatch('app/loadApiSchema').then(() => {
+            this.$store.dispatch('openApi/loadApiSchema').then(() => {
                 if (this.id) {
                     this.$api.authenticated().get(this.resourceUrl + '/' + this.id).then(response => {
                         this.formData = this.getFormData(response.data);

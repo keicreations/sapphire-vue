@@ -116,7 +116,7 @@ export default {
                 this.order[field] = direction;
             }
         }
-        this.$store.dispatch('app/loadApiSchema').then(() => {
+        this.$store.dispatch('openApi/loadApiSchema').then(() => {
             this.$api.authenticated().get(this.getCurrentUri()).then(response => {
                 this.page = response.data;
                 this.items = response.data['hydra:member'];

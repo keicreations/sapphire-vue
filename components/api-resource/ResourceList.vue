@@ -85,10 +85,10 @@
 </template>
 
 <script>
-import Loading from "@keicreations/sapphire-vue/components/ui/Loading";
+import Loading from "../ui/Loading";
 import ResourceCollection from "./ResourceCollection";
 import _ from 'lodash';
-import ResourceFilters from "@/components/parts/filters/ResourceFilters";
+import ResourceFilters from "../shared/ResourceFilters";
 
 export default {
     name: "ResourceList",
