@@ -19,6 +19,22 @@ export default {
             type: Object,
             default: () => {},
         },
+        itemActions: {
+            type: Array,
+            default: () => [],
+        },
+        showItemCount: {
+            type: Boolean,
+            default: false,
+        },
+        listActions: {
+            type: Array,
+            default: () => [],
+        },
+        showTitle: {
+            type: Boolean,
+            default: true,
+        },
         title: {
             type: String,
         },

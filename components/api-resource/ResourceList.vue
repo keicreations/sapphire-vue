@@ -3,7 +3,7 @@
         <b-modal ref="delete-confirmation" @ok="onDeleteItem" @cancel="cancelDelete">
             Are you sure you want to delete this item?
         </b-modal>
-        <h2 class="text-center">{{ resourceTitle }}
+        <h2 class="text-center" v-if="showTitle">{{ resourceTitle }}
             <b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge>
         </h2>
         <slot name="filters">
@@ -103,18 +103,6 @@ export default {
         listFields: {
             type: Array,
             required: true,
-        },
-        itemActions: {
-            type: Array,
-            default: () => [],
-        },
-        showItemCount: {
-            type: Boolean,
-            default: false,
-        },
-        listActions: {
-            type: Array,
-            default: () => [],
         },
     },
     methods: {
