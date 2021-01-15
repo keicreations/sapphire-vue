@@ -14,10 +14,18 @@ export default new Vuex.Store({
         toasts,
         openApi,
     },
+    state: {
+        authEndpoint: '/authentication_token'
+    },
+    mutations: {
+        setAuthEndpoint(state, payload) {
+            state.authEndpoint = payload;
+        }
+    },
     actions: {
         login(context, payload) {
             return new Promise((resolve, reject) => {
-                api.anonymous().post('/authentication_token', {
+                api.anonymous().post(context.state.authEndpoint, {
                     email: payload.username,
                     password: payload.password,
                 }).then(response => {
