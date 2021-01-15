@@ -17,7 +17,7 @@ export default new Vuex.Store({
     actions: {
         login(context, payload) {
             return new Promise((resolve, reject) => {
-                const endpoint = payload.endpoint ?? '/authentication_token';
+                const endpoint = payload.endpoint || '/authentication_token';
                 api.anonymous().post(endpoint, {
                     email: payload.username,
                     password: payload.password,
