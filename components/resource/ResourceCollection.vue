@@ -271,6 +271,10 @@
             getPageSize() {
                 return this.customPageSize ? this.customPageSize : this.pageSize;
             },
+            setPageSize(size) {
+                this.pageSize = size;
+                this.refresh();
+            }
         },
     }
 </script>
