@@ -63,6 +63,10 @@
                 type: Boolean,
                 default: false,
             },
+            fieldLock: {
+                type: Array,
+                default: () => [],
+            },
             showSubmitButton: {
                 type: Boolean,
                 default: true,
@@ -105,7 +109,7 @@
                 return null;
             },
             apiSchema() {
-                return this.$store.state.openApi.apiSchema;
+                return this.$store.state.app.apiSchema;
             },
             formData: {
                 get() {
@@ -495,7 +499,7 @@
                     throw new Error('You need to set either a resourceIdentifier or an URI');
                 }
             }
-            this.$store.dispatch('openApi/loadApiSchema').then(() => {
+            this.$store.dispatch('app/loadApiSchema').then(() => {
                 if (this.id) {
                     this.$api.authenticated().get(this.resourceUrl + '/' + this.id).then(response => {
                         this.formData = this.getFormData(response.data);

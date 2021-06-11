@@ -19,22 +19,6 @@ export default {
             type: Object,
             default: () => {},
         },
-        itemActions: {
-            type: Array,
-            default: () => [],
-        },
-        showItemCount: {
-            type: Boolean,
-            default: false,
-        },
-        listActions: {
-            type: Array,
-            default: () => [],
-        },
-        showTitle: {
-            type: Boolean,
-            default: true,
-        },
         title: {
             type: String,
         },
@@ -96,7 +80,7 @@ export default {
     },
     computed: {
         apiSchema() {
-            return this.$store.state.openApi.apiSchema;
+            return this.$store.state.app.apiSchema;
         },
         currentResource() {
             if (this.apiSchema?.['hydra:supportedClass']) {
@@ -132,7 +116,7 @@ export default {
                 this.order[field] = direction;
             }
         }
-        this.$store.dispatch('openApi/loadApiSchema').then(() => {
+        this.$store.dispatch('app/loadApiSchema').then(() => {
             this.$api.authenticated().get(this.getCurrentUri()).then(response => {
                 this.page = response.data;
                 this.items = response.data['hydra:member'];

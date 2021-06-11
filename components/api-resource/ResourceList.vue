@@ -3,11 +3,9 @@
         <b-modal ref="delete-confirmation" @ok="onDeleteItem" @cancel="cancelDelete">
             Are you sure you want to delete this item?
         </b-modal>
-        <slot name="title">
-            <h2 v-if="showTitle">{{ resourceTitle }}
-                <b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge>
-            </h2>
-        </slot>
+        <h2 class="mr-2">
+            {{ resourceTitle }} <b-badge class="ml-3" v-if="showItemCount">{{ itemCount }}</b-badge>
+        </h2>
         <slot name="filters">
             <ResourceFilters
                 v-if="hasFilters"
@@ -31,18 +29,18 @@
             <table v-else-if="items.length">
                 <thead>
                 <tr class="bg-primary">
-                    <th v-for="(value, name, index) of fields" :key="index" class="pt-2 pb-2"
+                    <th v-for="(listField, index) of listFields" :key="index" class="pt-2 pb-2"
                         :class="index === 0 ? 'pl-2' : ''">
-                        <span @click="toggleOrder(name)" class="cursor-pointer" v-if="getOrderField(name)">
-                            {{ value }}
+                        <span @click="toggleOrder(listField)" class="cursor-pointer" v-if="getOrderField(listField)">
+                            {{ getUpperFirst(listField) }}
                             <span class="position-absolute ml-1">
-                                <font-awesome-icon :icon="['fad', 'sort']" v-show="!getOrderDirection(name)" />
-                                <font-awesome-icon :icon="['fad', 'sort-up']" v-show="getOrderDirection(name) === 'asc'" />
-                                <font-awesome-icon :icon="['fad', 'sort-down']" v-show="getOrderDirection(name) === 'desc'"/>
+                                <font-awesome-icon :icon="['fad', 'sort']" v-show="!getOrderDirection(listField)" />
+                                <font-awesome-icon :icon="['fad', 'sort-up']" v-show="getOrderDirection(listField) === 'asc'" />
+                                <font-awesome-icon :icon="['fad', 'sort-down']" v-show="getOrderDirection(listField) === 'desc'"/>
                             </span>
                         </span>
                         <span v-else>
-                            {{ value }}
+                            {{ getUpperFirst(listField) }}
                         </span>
                     </th>
                     <th class="text-right"/>
@@ -50,9 +48,9 @@
                 </thead>
                 <tbody>
                 <tr v-for="item of items" :key="item.id" class="border">
-                    <td v-for="(value, name, index) of fields" :key="index" class="pb-3 pt-3"
+                    <td v-for="(listField, index) of listFields" :key="index" class="pb-3 pt-3"
                         :class="index === 0 ? 'pl-2': ''">
-                        {{ getFieldValue(item[name]) }}
+                        {{ getFieldValue(item[listField]) }}
                     </td>
                     <td class="d-flex flex-row-reverse">
                         <b-button variant="link" v-if="canDelete" @click="onClickDelete(item['@id'])" class="mr-3 mt-3 p-0">
@@ -87,11 +85,10 @@
 </template>
 
 <script>
-import Loading from "../ui/Loading";
+import Loading from "@keicreations/sapphire-vue/components/ui/Loading";
 import ResourceCollection from "./ResourceCollection";
 import _ from 'lodash';
-import ResourceFilters from "../shared/ResourceFilters";
-import moment from 'moment';
+import ResourceFilters from "@/components/parts/filters/ResourceFilters";
 
 export default {
     name: "ResourceList",
@@ -104,8 +101,20 @@ export default {
     },
     props: {
         listFields: {
-            type: [Array, Object],
+            type: Array,
             required: true,
+        },
+        itemActions: {
+            type: Array,
+            default: () => [],
+        },
+        showItemCount: {
+            type: Boolean,
+            default: false,
+        },
+        listActions: {
+            type: Array,
+            default: () => [],
         },
     },
     methods: {
@@ -113,29 +122,13 @@ export default {
             if (_.isPlainObject(value) && value['@title']) {
                 return value['@title'];
             }
-            if (moment(value, moment.ISO_8601).isValid()) {
-                return moment(value).calendar();
-            }
             return value;
-        },
-        getSentenceCased(value) {
-            return _.upperFirst(_.toLower(_.startCase(value)));
         },
         getUpperFirst(value) {
             return _.upperFirst(value);
-        }
+        },
     },
     computed: {
-        fields() {
-            if (_.isPlainObject(this.listFields)) {
-                return this.listFields;
-            }
-            let fields = {};
-            for (const field of this.listFields) {
-                fields[field] = this.getSentenceCased(field);
-            }
-            return fields;
-        },
         itemCount() {
             return this.page ? this.page['hydra:totalItems'] : null;
         },
