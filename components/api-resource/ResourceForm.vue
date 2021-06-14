@@ -514,7 +514,7 @@
             });
         },
         destroyed() {
-            this.item = null;
+            this.$store.commit('form/setItem', null);
         },
     }
 </script>
