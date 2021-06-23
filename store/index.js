@@ -30,10 +30,10 @@ export default new Vuex.Store({
                     reject(reason.response);
                 })
             });
-            await context.dispatch('user/setToken', response.data.token);
             await context.dispatch('user/setRefreshToken', response.data.refresh_token);
             await context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
             await context.dispatch('mercure/useRefreshToken');
+            await context.dispatch('user/setToken', response.data.token);
 
             return new Promise((resolve) => {
                 resolve();
