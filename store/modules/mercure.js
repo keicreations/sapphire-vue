@@ -66,7 +66,7 @@ const actions = {
                 refresh_token: context.state.refreshToken
             }).then(response => {
                 context.dispatch('setToken', response.data.mercure_token);
-                resolve(response.data.token);
+                resolve(response.data.mercure_token);
             }).catch(() => {
                 context.dispatch('clear');
                 reject(error);

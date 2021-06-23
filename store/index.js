@@ -15,27 +15,28 @@ export default new Vuex.Store({
         openApi,
     },
     actions: {
-        login(context, payload) {
-            return new Promise((resolve, reject) => {
-                const endpoint = payload.endpoint || '/authentication_token';
-                api.anonymous().post(endpoint, {
-                    email: payload.username,
-                    password: payload.password,
-                }).then(response => {
-                    context.dispatch('user/setToken', response.data.token).then(() => {
-                        context.dispatch('user/setRefreshToken', response.data.refresh_token);
-                        context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
-                        context.dispatch('mercure/useRefreshToken');
-                        resolve();
-                    });
-                }).catch(reason => {
-                    context.dispatch('user/setToken', null);
-                    context.dispatch('user/setRefreshToken', null);
-                    context.dispatch('mercure/setToken', null);
-                    context.dispatch('mercure/setRefreshToken', null);
+        async login(context, payload) {
+            const endpoint = payload.endpoint || '/authentication_token';
+            const response = await api.anonymous().post(endpoint, {
+                email: payload.username,
+                password: payload.password,
+            }).catch(reason => {
+                context.dispatch('user/setToken', null);
+                context.dispatch('user/setRefreshToken', null);
+                context.dispatch('mercure/setToken', null);
+                context.dispatch('mercure/setRefreshToken', null);
 
+                return new Promise((reject) => {
                     reject(reason.response);
-                });
+                })
+            });
+            await context.dispatch('user/setToken', response.data.token);
+            await context.dispatch('user/setRefreshToken', response.data.refresh_token);
+            await context.dispatch('mercure/setRefreshToken', response.data.refresh_token);
+            await context.dispatch('mercure/useRefreshToken');
+
+            return new Promise((resolve) => {
+                resolve();
             });
         },
     }
