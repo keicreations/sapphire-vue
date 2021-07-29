@@ -4,7 +4,7 @@ import ResourceCollection from "./components/resource/ResourceCollection";
 import ResourceItem from "./components/resource/ResourceItem";
 import ResourceList from "./components/resource/ResourceList";
 import store from "./store/index";
-import user from "./store/modules/user";;
+import user from "./store/modules/user";
 
 export default {
     install(Vue, options) {
