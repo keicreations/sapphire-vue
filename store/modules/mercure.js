@@ -103,13 +103,25 @@ const actions = {
         payload.id = id;
         context.commit('incrementHandlerId');
         context.commit('addHandler', payload);
-        // if (process.env.NODE_ENV !== 'production') {
-        //     console.log('[Mercure] Current handler count: ' + context.state.handlers.length);
-        // }
 
         context.dispatch('connect');
 
         return id;
+    },
+    registerHandlers(context, payload) {
+        let ids = [];
+
+        payload.forEach(handler => {
+            let id = context.state.handlerLastId;
+            handler.id = id
+            context.commit('incrementHandlerId');
+            context.commit('addHandler', handler);
+            ids.push(id)
+        })
+
+        context.dispatch('connect');
+
+        return ids;
     },
     unregisterHandlerId(context, id) {
         context.commit('removeHandlerId', id);
