@@ -127,14 +127,22 @@ const actions = {
         context.commit('removeHandlerId', id);
         context.dispatch('clearReconnectTimer');
 
-        // if (process.env.NODE_ENV !== 'production') {
-        //     console.log('[Mercure] Current handler count: ' + context.state.handlers.length);
-        // }
-
         if (context.state.handlers.length === 0) {
             context.dispatch('disconnect');
         }
         else {
+            context.dispatch('connect');
+        }
+    },
+    unregisterHandlerIds(context, ids) {
+        ids.forEach(id => {
+            context.commit('removeHandlerId', id);
+            context.dispatch('clearReconnectTimer');
+        })
+
+        if (context.state.handlers.length === 0) {
+            context.dispatch('disconnect');
+        } else {
             context.dispatch('connect');
         }
     },
