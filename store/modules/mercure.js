@@ -1,4 +1,4 @@
-import {EventSourcePolyfill} from "event-source-polyfill";
+import EventSource from "eventsource";
 import jwt_decode from 'jwt-decode';
 import moment from 'moment';
 import api from './../../lib/api-platform';
@@ -153,7 +153,7 @@ const actions = {
             }
             return;
         }
-        context.state.eventSource = new EventSourcePolyfill(context.getters.calculatedMercureUri, {
+        context.state.eventSource = new EventSource(context.getters.calculatedMercureUri.href, {
             headers: {
                 Authorization: 'Bearer ' + context.state.token
             }

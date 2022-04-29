@@ -1,6 +1,6 @@
 {
     "name": "@keicreations/sapphire-vue",
-    "version": "3.7.1",
+    "version": "3.7.2",
     "description": "Vue components to communicate with API platform and Mercure.",
     "repository": {
         "type": "git",
@@ -18,12 +18,12 @@
         "autoprefixer": "^9.7.4",
         "axios": "^0.21.1",
         "bootstrap-vue": "^2.6.1",
-        "event-source-polyfill": "^1.0.12",
         "jwt-decode": "^2.2.0",
         "moment": "^2.24.0",
         "vue": "2.6.12",
         "vue-router": "^3.1.6",
-        "vue-template-compiler": "2.6.12"
+        "vue-template-compiler": "2.6.12",
+        "eventsource": "^2.0.1"
     },
     "peerDependencies": {
         "vuex": "3.x"
