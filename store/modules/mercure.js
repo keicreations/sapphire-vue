@@ -17,6 +17,7 @@ const state = {
     reconnectTimeout: 1,
     visibilityListener: null,
     wasInvisible: false,
+    lastEventId: null,
 };
 const getters = {
     calculatedMercureUri: (state) => {
@@ -34,26 +35,6 @@ const getters = {
     },
     currentHub: (state) => {
         return state.handlers.length ? state.handlers[0].hub : null;
-    },
-    handler: (state) => (event) => {
-        state.handlers.forEach((payload) => {
-            let data = JSON.parse(event.data);
-            let expected = payload.topic.replace(process.env.VUE_APP_API_URL, '');
-            let actual = data['@id'];
-
-            if (expected.endsWith('/{id}')) {
-                expected = expected.replace('/{id}', '');
-                let actualParts = actual.split('/');
-                actualParts.pop();
-                actual = actualParts.join('/');
-                if (actual === expected) {
-                    payload.handler(event);
-                }
-            }
-            else if (expected === actual) {
-                payload.handler(event);
-            }
-        });
     },
 };
 const actions = {
@@ -146,6 +127,28 @@ const actions = {
             context.dispatch('connect');
         }
     },
+    handleMessageEvent(context, event) {
+        context.commit('setLastEventId', event.lastEventId)
+
+        state.handlers.forEach((payload) => {
+            let data = JSON.parse(event.data);
+            let expected = payload.topic.replace(process.env.VUE_APP_API_URL, '');
+            let actual = data['@id'];
+
+            if (expected.endsWith('/{id}')) {
+                expected = expected.replace('/{id}', '');
+                let actualParts = actual.split('/');
+                actualParts.pop();
+                actual = actualParts.join('/');
+                if (actual === expected) {
+                    payload.handler(event);
+                }
+            }
+            else if (expected === actual) {
+                payload.handler(event);
+            }
+        });
+    },
     registerEventSource(context) {
         if (context.getters.calculatedMercureUri === null || context.getters.calculatedMercureUri.toString() === null) {
             if (process.env.NODE_ENV !== 'production') {
@@ -155,11 +158,12 @@ const actions = {
         }
         context.state.eventSource = new EventSource(context.getters.calculatedMercureUri.href, {
             headers: {
-                Authorization: 'Bearer ' + context.state.token
-            }
+                Authorization: 'Bearer ' + context.state.token,
+                'Last-Event-ID': context.state.lastEventId
+            },
         });
-        context.state.eventSource.onmessage = context.getters.handler;
-        context.state.eventSource.onerror = error => {
+        context.state.eventSource.onmessage = event => context.dispatch('handleMessageEvent', event);
+        context.state.eventSource.onerror = () => {
             context.dispatch('disconnect');
             if (process.env.NODE_ENV !== 'production') {
                 console.log('[Mercure] Connection problem! Trying reconnect in ' + context.state.reconnectTimeout + ' seconds');
@@ -248,6 +252,9 @@ const actions = {
 const mutations = {
     incrementHandlerId(state) {
         state.handlerLastId++;
+    },
+    setLastEventId(state, payload) {
+        state.lastEventId = payload;
     },
     setVisibilityListener(state, payload) {
         state.visibilityListener = payload;
