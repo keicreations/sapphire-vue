@@ -8,7 +8,7 @@
     },
     "dependencies": {
         "@braid/vue-formulate": "^2.4.5",
-        "lodash": "4.17.19",
+        "lodash": "^4.17.20",
         "@fortawesome/fontawesome-svg-core": "^1.2.27",
         "@fortawesome/pro-duotone-svg-icons": "^5.12.1",
         "@fortawesome/pro-light-svg-icons": "^5.12.1",
