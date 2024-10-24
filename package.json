@@ -20,7 +20,7 @@
         "bootstrap-vue": "^2.6.1",
         "jwt-decode": "^2.2.0",
         "moment": "^2.24.0",
-        "vue": "2.6.12",
+        "vue": "3.0.0",
         "vue-router": "^3.1.6",
         "vue-template-compiler": "2.6.12",
         "eventsource": "^2.0.1"
